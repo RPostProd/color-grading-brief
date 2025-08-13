@@ -310,6 +310,7 @@
   </div>
 
   <script>
+    const { jsPDF } = window.jspdf;
     let uploadedImages = [];
 
     // File input
@@ -347,5 +348,172 @@
         }
       });
       // reset file input so selecting the same file again still triggers change
-      if (event.target && event.target.id === 'fileInput') event.
+      if (event.target && event.target.id === 'fileInput') event.target.value = '';
+    }
 
+    function displayUploadedImages(){
+      const container = document.getElementById('uploadedImages');
+      container.innerHTML = '';
+      uploadedImages.forEach(image=>{
+        const imageDiv = document.createElement('div');
+        imageDiv.className = 'image-reference';
+        imageDiv.innerHTML = `
+          <img src="${image.src}" alt="${image.name}">
+          <label for="desc-${image.id}">Image notes:</label>
+          <textarea id="desc-${image.id}" placeholder="What component of this image do you like or not like?">${image.description}</textarea>
+          <button class="remove-image" onclick="removeImage('${image.id}')">Remove Image</button>
+        `;
+        container.appendChild(imageDiv);
+
+        document.getElementById(`desc-${image.id}`).addEventListener('input',(e)=>{
+          const img = uploadedImages.find(i=>i.id == image.id);
+          if(img) img.description = e.target.value;
+        });
+      });
+    }
+
+    function removeImage(imageId){
+      uploadedImages = uploadedImages.filter(img=>img.id != imageId);
+      displayUploadedImages();
+    }
+
+    // Export
+    async function exportToPDF(){
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit:'pt', format:'a4' }); // use points for easier layout
+      const marginX = 40;
+      const maxWidth = doc.internal.pageSize.getWidth() - marginX*2;
+      const pageHeight = doc.internal.pageSize.getHeight();
+
+      function ensureSpace(y, needed){
+        if (y + needed > pageHeight - 40){
+          doc.addPage(); return 40;
+        }
+        return y;
+      }
+
+      let y = 60;
+
+      // Title
+      doc.setFontSize(20);
+      doc.setTextColor(44,62,80);
+      doc.text('Color Grading Brief', marginX, y);
+      y += 18;
+      doc.setFontSize(11);
+      doc.setTextColor(100,100,100);
+      doc.text(`Generated: ${new Date().toLocaleDateString()}`, marginX, y);
+      y += 24;
+
+      // Helpers
+      function addSection(title){
+        y = ensureSpace(y, 26);
+        doc.setFontSize(14);
+        doc.setTextColor(44,62,80);
+        doc.text(title, marginX, y);
+        y += 14;
+      }
+
+      function addField(label, value){
+        if (!value) return;
+        const v = String(value).trim();
+        if (!v) return;
+        doc.setFontSize(11);
+        doc.setTextColor(0,0,0);
+        y = ensureSpace(y, 30);
+        doc.text(`${label}:`, marginX, y);
+        const lines = doc.splitTextToSize(v, maxWidth);
+        y += 14;
+        doc.text(lines, marginX, y);
+        y += lines.length * 14;
+        y += 8;
+      }
+
+      async function addImageBlock(image){
+        // reserve ~260pt, or add a new page
+        y = ensureSpace(y, 280);
+
+        // detect image type for jsPDF
+        let format = 'JPEG';
+        if (image.src.startsWith('data:image/png')) format = 'PNG';
+        if (image.src.startsWith('data:image/webp')) format = 'WEBP';
+
+        // scale image to width 240pt (keeps things consistent)
+        const imgWidth = 240;
+        const imgHeight = 160; // rough default; jsPDF can’t get intrinsic size reliably from dataURL without extra work
+
+        // draw
+        doc.addImage(image.src, format, marginX, y, imgWidth, imgHeight);
+        y += imgHeight + 12;
+
+        doc.setFontSize(10);
+        doc.setTextColor(100,100,100);
+        doc.text(image.name, marginX, y);
+        y += 14;
+
+        if (image.description && image.description.trim()){
+          doc.setFontSize(10);
+          doc.setTextColor(0,0,0);
+          const lines = doc.splitTextToSize(image.description.trim(), maxWidth);
+          doc.text(lines, marginX, y);
+          y += lines.length * 12 + 8;
+        }
+      }
+
+      // Step 1
+      addSection('Step 1: Scope of Adjustment');
+      const scopeValue = (document.querySelector('input[name="scope"]:checked')?.value) || '';
+      const scopeLabels = {
+        'timeline':'Timeline Level (Global Look)',
+        'group':'Group Level (Scene/Camera Consistency)',
+        'clip':'Clip Level (Shot-Specific Look)'
+      };
+      addField('Adjustment Level', scopeLabels[scopeValue] || '');
+      addField('Scope Description', document.getElementById('scope-description').value);
+
+      // Step 2
+      addSection('Step 2: Image Components');
+      // Exposure
+      addField('Exposure Preference', document.querySelector('input[name="exposure"]:checked')?.value || '');
+      addField('Exposure Notes', document.getElementById('exposure-notes').value);
+      // Tonal Contrast
+      addField('Tonal Contrast Preference', document.querySelector('input[name="tonal-contrast"]:checked')?.value || '');
+      addField('Tonal Notes', document.getElementById('tonal-notes').value);
+      // Color Contrast
+      addField('Color Contrast Style', document.getElementById('color-contrast-style').value);
+      addField('Color Variety', document.getElementById('color-variety').value);
+      // Color Balance
+      addField('Color Balance Mood', document.getElementById('color-balance-mood').value);
+      addField('Hue Characteristics', document.getElementById('hue-characteristics').value);
+      // Saturation
+      addField('Saturation Preference', document.querySelector('input[name="saturation"]:checked')?.value || '');
+      addField('Saturation Type', document.getElementById('saturation-type').value);
+      // Hue Accuracy
+      addField('Accuracy Goals', document.getElementById('color-accuracy-goals').value);
+      addField('Hue Preferences', document.getElementById('hue-preferences').value);
+      // Texture & Detail
+      addField('Texture Preference', document.querySelector('input[name="texture"]:checked')?.value || '');
+      addField('Texture Elements', document.getElementById('texture-elements').value);
+      // Consistency
+      addField('Consistency Approach', document.getElementById('consistency-approach').value);
+      addField('Consistency Elements', document.getElementById('consistency-elements').value);
+
+      // Step 3
+      addSection('Step 3: References');
+      addField('Visual References', document.getElementById('visual-references').value);
+
+      if (uploadedImages.length){
+        addSection('Reference Images');
+        for (const image of uploadedImages){
+          await addImageBlock(image);
+        }
+      }
+
+      addField('Non-Visual References', document.getElementById('non-visual-references').value);
+      addField('General Reference Notes', document.getElementById('reference-specifics').value);
+
+      // Save
+      doc.save(`color-grading-brief-${new Date().toISOString().split('T')[0]}.pdf`);
+    }
+  </script>
+</body>
+</html>
