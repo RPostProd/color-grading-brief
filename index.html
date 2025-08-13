@@ -1,816 +1,351 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Color Grading Brief Creator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Color Grading Brief Creator</title>
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{
+      font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      min-height:100vh;padding:20px;
+    }
+    .container{max-width:1400px;margin:0 auto;background:#fff;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.1);overflow:hidden}
+    .header{background:linear-gradient(135deg,#2c3e50 0%,#34495e 100%);color:#fff;padding:30px;text-align:center}
+    .header h1{font-size:2.5rem;font-weight:300;margin-bottom:10px}
+    .header p{font-size:1.1rem;opacity:.9}
+    .main-content{padding:40px;display:grid;grid-template-rows:auto auto 1fr;gap:30px;min-height:900px}
 
-        .header {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
+    .step-section{background:#f8f9fa;border-radius:15px;padding:25px;border:2px solid #e9ecef;transition:.3s}
+    .step-section:hover{border-color:#667eea;transform:translateY(-2px);box-shadow:0 10px 25px rgba(102,126,234,.1)}
 
-        .header h1 {
-            font-size: 2.5rem;
-            font-weight: 300;
-            margin-bottom: 10px;
-        }
+    .components-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:25px}
+    .component-card{background:#f8f9fa;border-radius:15px;padding:20px;border:2px solid #e9ecef;transition:.3s}
+    .component-card:hover{border-color:#667eea;transform:translateY(-2px);box-shadow:0 10px 25px rgba(102,126,234,.1)}
+    .section-title{font-size:1.4rem;font-weight:600;color:#2c3e50;margin-bottom:20px;padding-bottom:15px;border-bottom:3px solid #667eea}
+    .component-title{font-size:1.1rem;font-weight:600;color:#2c3e50;margin-bottom:15px}
 
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
+    .subcategory{margin-bottom:15px}
+    .subcategory:last-child{margin-bottom:0}
+    .subcategory label{display:block;font-weight:500;color:#495057;margin-bottom:8px;font-size:.9rem}
+    .subcategory input,.subcategory textarea,.subcategory select{
+      width:100%;padding:12px 15px;border:2px solid #dee2e6;border-radius:8px;font-size:.9rem;transition:.3s;font-family:inherit;background:#fff
+    }
+    .subcategory input:focus,.subcategory textarea:focus,.subcategory select:focus{
+      outline:none;border-color:#667eea;box-shadow:0 0 0 3px rgba(102,126,234,.1)
+    }
+    .subcategory textarea{resize:vertical;min-height:80px}
 
-        .main-content {
-            padding: 40px;
-            display: grid;
-            grid-template-rows: auto auto 1fr;
-            gap: 30px;
-            min-height: 900px;
-        }
+    .radio-group{display:flex;gap:15px;flex-wrap:wrap;margin-top:8px}
+    .radio-option{display:flex;align-items:center;gap:5px}
+    .radio-option input[type="radio"]{width:auto;margin:0}
+    .radio-option label{margin:0;font-size:.85rem}
 
-        .step-section {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 25px;
-            border: 2px solid #e9ecef;
-            transition: all 0.3s ease;
-        }
+    .export-section{text-align:center;margin-top:30px;padding-top:30px;border-top:2px solid #e9ecef}
+    .export-btn{
+      background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;border:none;padding:15px 40px;
+      font-size:1.1rem;border-radius:50px;cursor:pointer;transition:.3s;font-weight:500;box-shadow:0 8px 25px rgba(102,126,234,.3)
+    }
+    .export-btn:hover{transform:translateY(-2px);box-shadow:0 12px 35px rgba(102,126,234,.4)}
+    .export-btn:active{transform:translateY(0)}
 
-        .step-section:hover {
-            border-color: #667eea;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.1);
-        }
+    .image-upload-area{
+      border:2px dashed #667eea;border-radius:10px;padding:30px;text-align:center;background:#f8f9fa;transition:.3s;cursor:pointer;margin-bottom:20px
+    }
+    .image-upload-area:hover,.image-upload-area.dragover{border-color:#2c3e50;background:#e9ecef}
+    .image-upload-area p{margin:0;color:#667eea;font-weight:500}
+    .uploaded-images{display:grid;gap:20px}
+    .image-reference{border:2px solid #e9ecef;border-radius:10px;padding:20px;background:#fff}
+    .image-reference img{width:100%;max-width:300px;height:auto;border-radius:5px;margin-bottom:15px;display:block}
+    .image-reference textarea{width:100%;min-height:80px}
+    .remove-image{background:#dc3545;color:#fff;border:none;padding:5px 10px;border-radius:5px;cursor:pointer;font-size:.8rem;margin-top:10px}
+    .remove-image:hover{background:#c82333}
 
-        .components-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 25px;
-        }
-
-        .component-card {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 20px;
-            border: 2px solid #e9ecef;
-            transition: all 0.3s ease;
-        }
-
-        .component-card:hover {
-            border-color: #667eea;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.1);
-        }
-
-        .section-title {
-            font-size: 1.4rem;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 3px solid #667eea;
-        }
-
-        .component-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 15px;
-        }
-
-        .subcategory {
-            margin-bottom: 15px;
-        }
-
-        .subcategory:last-child {
-            margin-bottom: 0;
-        }
-
-        .subcategory label {
-            display: block;
-            font-weight: 500;
-            color: #495057;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-        }
-
-        .subcategory input,
-        .subcategory textarea,
-        .subcategory select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #dee2e6;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-            font-family: inherit;
-            background: white;
-        }
-
-        .subcategory input:focus,
-        .subcategory textarea:focus,
-        .subcategory select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .subcategory textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .radio-group {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-top: 8px;
-        }
-
-        .radio-option {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .radio-option input[type="radio"] {
-            width: auto;
-            margin: 0;
-        }
-
-        .radio-option label {
-            margin: 0;
-            font-size: 0.85rem;
-        }
-
-        .export-section {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 30px;
-            border-top: 2px solid #e9ecef;
-        }
-
-        .export-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.1rem;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        .export-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
-        }
-
-        .export-btn:active {
-            transform: translateY(0);
-        }
-
-        .image-upload-area {
-            border: 2px dashed #667eea;
-            border-radius: 10px;
-            padding: 30px;
-            text-align: center;
-            background: #f8f9fa;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            margin-bottom: 20px;
-        }
-
-        .image-upload-area:hover,
-        .image-upload-area.dragover {
-            border-color: #2c3e50;
-            background: #e9ecef;
-        }
-
-        .image-upload-area p {
-            margin: 0;
-            color: #667eea;
-            font-weight: 500;
-        }
-
-        .uploaded-images {
-            display: grid;
-            gap: 20px;
-        }
-
-        .image-reference {
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            padding: 20px;
-            background: white;
-        }
-
-        .image-reference img {
-            width: 100%;
-            max-width: 300px;
-            height: auto;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            display: block;
-        }
-
-        .image-reference textarea {
-            width: 100%;
-            min-height: 80px;
-        }
-
-        .remove-image {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            margin-top: 10px;
-        }
-
-        .remove-image:hover {
-            background: #c82333;
-        }
-            .components-grid {
-                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            }
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                margin: 10px;
-                border-radius: 15px;
-            }
-            
-            .main-content {
-                padding: 20px;
-            }
-            
-            .header {
-                padding: 20px;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .components-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .radio-group {
-                flex-direction: column;
-                gap: 8px;
-            }
-        }
-    </style>
+    @media (max-width: 768px){
+      .container{margin:10px;border-radius:15px}
+      .main-content{padding:20px}
+      .header{padding:20px}
+      .header h1{font-size:2rem}
+      .components-grid{grid-template-columns:1fr}
+      .radio-group{flex-direction:column;gap:8px}
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Color Grading Brief Creator</h1>
-            <p>A structured approach to defining and communicating your desired color grading look</p>
-        </div>
-        
-        <div class="main-content">
-            <!-- Step 1: Define the Scope -->
-            <div class="step-section">
-                <h2 class="section-title">Step 1: Define the Application Scope</h2>
-                <div class="subcategory">
-                    <label>Where should this look be applied?</label>
-                    <div class="radio-group">
-                        <div class="radio-option">
-                            <input type="radio" id="timeline-level" name="scope" value="timeline">
-                            <label for="timeline-level">Timeline Level (Global Look)</label>
-                        </div>
-                        <div class="radio-option">
-                            <input type="radio" id="group-level" name="scope" value="group">
-                            <label for="group-level">Group Level (Scene/Camera Consistency)</label>
-                        </div>
-                        <div class="radio-option">
-                            <input type="radio" id="clip-level" name="scope" value="clip">
-                            <label for="clip-level">Clip Level (Shot-Specific Look)</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="subcategory">
-                    <label for="scope-description">Describe the intended application and creative vision:</label>
-                    <textarea id="scope-description" placeholder="What shots/scenes will have this look? What's the overall creative intention?"></textarea>
-                </div>
-            </div>
-
-            <!-- Step 2: Image Components -->
-            <div class="step-section">
-                <h2 class="section-title">Step 2: Define the Desired Image Components</h2>
-                <div class="components-grid">
-                    <div class="component-card">
-                        <h3 class="component-title">Exposure</h3>
-                        <div class="subcategory">
-                            <label>Desired brightness level:</label>
-                            <div class="radio-group">
-                                <div class="radio-option">
-                                    <input type="radio" id="exp-normal" name="exposure" value="normal">
-                                    <label for="exp-normal">Normal exposure</label>
-                                </div>
-                                <div class="radio-option">
-                                    <input type="radio" id="exp-bright" name="exposure" value="bright">
-                                    <label for="exp-bright">Bright/luminous</label>
-                                </div>
-                                <div class="radio-option">
-                                    <input type="radio" id="exp-dark" name="exposure" value="dark">
-                                    <label for="exp-dark">Dark/moody</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="subcategory">
-                            <label for="exposure-notes">Exposure details:</label>
-                            <textarea id="exposure-notes" placeholder="Specific brightness characteristics, highlight/shadow preferences..."></textarea>
-                        </div>
-                    </div>
-
-                    <div class="component-card">
-                        <h3 class="component-title">Tonal Contrast</h3>
-                        <div class="subcategory">
-                            <label>Desired tonal contrast:</label>
-                            <div class="radio-group">
-                                <div class="radio-option">
-                                    <input type="radio" id="tonal-low" name="tonal-contrast" value="low">
-                                    <label for="tonal-low">Low contrast (soft/flat)</label>
-                                </div>
-                                <div class="radio-option">
-                                    <input type="radio" id="tonal-medium" name="tonal-contrast" value="medium">
-                                    <label for="tonal-medium">Medium contrast</label>
-                                </div>
-                                <div class="radio-option">
-                                    <input type="radio" id="tonal-high" name="tonal-contrast" value="high">
-                                    <label for="tonal-high">High contrast (punchy/dramatic)</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="subcategory">
-                            <label for="tonal-notes">Tonal characteristics:</label>
-                            <textarea id="tonal-notes" placeholder="Shadow depth, highlight handling, mid-tone characteristics..."></textarea>
-                        </div>
-                    </div>
-
-                    <div class="component-card">
-                        <h3 class="component-title">Color Contrast</h3>
-                        <div class="subcategory">
-                            <label for="color-contrast-style">Desired color contrast style:</label>
-                            <textarea id="color-contrast-style" placeholder="How should colors interact? Complementary, analogous, monochromatic, vibrant separation..."></textarea>
-                        </div>
-                        <div class="subcategory">
-                            <label for="color-variety">Color variety approach:</label>
-                            <select id="color-variety">
-                                <option value="">Select desired approach</option>
-                                <option value="monochromatic">Monochromatic feel</option>
-                                <option value="limited-palette">Limited color palette</option>
-                                <option value="full-spectrum">Full spectrum variety</option>
-                                <option value="complementary">Strong complementary colors</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="component-card">
-                        <h3 class="component-title">Color Balance</h3>
-                        <div class="subcategory">
-                            <label for="color-balance-mood">Desired color temperature and mood:</label>
-                            <textarea id="color-balance-mood" placeholder="Warm/cool temperature, color mood characteristics, overall color feeling..."></textarea>
-                        </div>
-                        <div class="subcategory">
-                            <label for="hue-characteristics">Specific hue characteristics:</label>
-                            <textarea id="hue-characteristics" placeholder="How should specific colors appear? Skin tone warmth, sky blues, foliage greens, etc."></textarea>
-                        </div>
-                    </div>
-
-                    <div class="component-card">
-                        <h3 class="component-title">Saturation</h3>
-                        <div class="subcategory">
-                            <label>Desired saturation intensity:</label>
-                            <div class="radio-group">
-                                <div class="radio-option">
-                                    <input type="radio" id="sat-low" name="saturation" value="low">
-                                    <label for="sat-low">Low saturation (muted/desaturated)</label>
-                                </div>
-                                <div class="radio-option">
-                                    <input type="radio" id="sat-medium" name="saturation" value="medium">
-                                    <label for="sat-medium">Medium saturation (natural)</label>
-                                </div>
-                                <div class="radio-option">
-                                    <input type="radio" id="sat-high" name="saturation" value="high">
-                                    <label for="sat-high">High saturation (vibrant/intense)</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="subcategory">
-                            <label for="saturation-type">Saturation approach:</label>
-                            <select id="saturation-type">
-                                <option value="">Select approach</option>
-                                <option value="vibrance">Vibrance (subtle, natural enhancement)</option>
-                                <option value="subtractive">Subtractive (filmic density)</option>
-                                <option value="uniform">Uniform across all colors</option>
-                                <option value="selective">Selective color enhancement</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="component-card">
-                        <h3 class="component-title">Hue Accuracy</h3>
-                        <div class="subcategory">
-                            <label for="color-accuracy-goals">Key colors to represent accurately:</label>
-                            <textarea id="color-accuracy-goals" placeholder="Product colors, skin tones, or other specific colors that should be represented faithfully..."></textarea>
-                        </div>
-                        <div class="subcategory">
-                            <label for="hue-preferences">Specific hue preferences:</label>
-                            <textarea id="hue-preferences" placeholder="How should specific colors be rendered? Warmer skin tones, cooler blues, etc."></textarea>
-                        </div>
-                    </div>
-
-                    <div class="component-card">
-                        <h3 class="component-title">Texture & Detail</h3>
-                        <div class="subcategory">
-                            <label>Desired texture and detail level:</label>
-                            <div class="radio-group">
-                                <div class="radio-option">
-                                    <input type="radio" id="texture-clean" name="texture" value="clean">
-                                    <label for="texture-clean">Clean/sharp</label>
-                                </div>
-                                <div class="radio-option">
-                                    <input type="radio" id="texture-organic" name="texture" value="organic">
-                                    <label for="texture-organic">Organic/textured</label>
-                                </div>
-                                <div class="radio-option">
-                                    <input type="radio" id="texture-filmic" name="texture" value="filmic">
-                                    <label for="texture-filmic">Filmic/vintage</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="subcategory">
-                            <label for="texture-elements">Desired texture elements:</label>
-                            <textarea id="texture-elements" placeholder="Film grain, diffusion, halation, sharpness characteristics, detail rendering..."></textarea>
-                        </div>
-                    </div>
-
-                    <div class="component-card">
-                        <h3 class="component-title">Consistency</h3>
-                        <div class="subcategory">
-                            <label for="consistency-approach">Desired consistency approach:</label>
-                            <textarea id="consistency-approach" placeholder="How should shots relate to each other? Seamless matching, stylistic variation, mood progression..."></textarea>
-                        </div>
-                        <div class="subcategory">
-                            <label for="consistency-elements">Key elements for consistency:</label>
-                            <textarea id="consistency-elements" placeholder="Which visual elements should remain consistent: exposure, color temperature, contrast style, saturation level..."></textarea>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Step 3: References -->
-            <div class="step-section">
-                <h2 class="section-title">Step 3: Utilize References Effectively</h2>
-                <div class="subcategory">
-                    <label for="visual-references">Visual References (links/descriptions):</label>
-                    <textarea id="visual-references" placeholder="Still images, video clips, or detailed descriptions of visual references..."></textarea>
-                </div>
-                <div class="subcategory">
-                    <label>Upload Reference Images:</label>
-                    <div class="image-upload-area" id="imageUpload" onclick="document.getElementById('fileInput').click()">
-                        <p>Click here or drag and drop reference images</p>
-                        <input type="file" id="fileInput" multiple accept="image/*" style="display: none;">
-                    </div>
-                    <div class="uploaded-images" id="uploadedImages"></div>
-                </div>
-                <div class="subcategory">
-                    <label for="non-visual-references">Non-Visual References:</label>
-                    <textarea id="non-visual-references" placeholder="Cultural concepts, time periods, technical qualities (e.g., '1940s film noir', 'Super8 film')..."></textarea>
-                </div>
-                <div class="subcategory">
-                    <label for="reference-specifics">General Reference Notes:</label>
-                    <textarea id="reference-specifics" placeholder="Overall themes, moods, or concepts that tie your references together..."></textarea>
-                </div>
-            </div>
-        </div>
-
-        <div class="export-section">
-            <button class="export-btn" onclick="exportToPDF()">Export Color Grading Brief as PDF</button>
-        </div>
+  <div class="container">
+    <div class="header">
+      <h1>Color Grading Brief Creator</h1>
+      <p>A structured approach to defining and communicating your desired color grading look</p>
     </div>
 
-    <script>
-        let uploadedImages = [];
+    <div class="main-content">
+      <!-- Step 1: Define the Scope -->
+      <div class="step-section">
+        <h2 class="section-title">Step 1: Define the Application Scope</h2>
+        <div class="subcategory">
+          <label>Where should this look be applied?</label>
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="timeline-level" name="scope" value="timeline">
+              <label for="timeline-level">Timeline Level (Global Look)</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="group-level" name="scope" value="group">
+              <label for="group-level">Group Level (Scene/Camera Consistency)</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="clip-level" name="scope" value="clip">
+              <label for="clip-level">Clip Level (Shot-Specific Look)</label>
+            </div>
+          </div>
+        </div>
+        <div class="subcategory">
+          <label for="scope-description">Describe the intended application and creative vision:</label>
+          <textarea id="scope-description" placeholder="What shots/scenes will have this look? What's the overall creative intention?"></textarea>
+        </div>
+      </div>
 
-        // Handle file upload
-        document.getElementById('fileInput').addEventListener('change', handleFiles);
-        
-        // Handle drag and drop
-        const uploadArea = document.getElementById('imageUpload');
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
-        });
-        
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
-        });
-        
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            handleFiles({ target: { files: e.dataTransfer.files } });
-        });
+      <!-- Step 2: Image Components -->
+      <div class="step-section">
+        <h2 class="section-title">Step 2: Define the Desired Image Components</h2>
+        <div class="components-grid">
+          <div class="component-card">
+            <h3 class="component-title">Exposure</h3>
+            <div class="subcategory">
+              <label>Desired brightness level:</label>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" id="exp-normal" name="exposure" value="Normal exposure">
+                  <label for="exp-normal">Normal exposure</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" id="exp-bright" name="exposure" value="Bright/luminous">
+                  <label for="exp-bright">Bright/luminous</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" id="exp-dark" name="exposure" value="Dark/moody">
+                  <label for="exp-dark">Dark/moody</label>
+                </div>
+              </div>
+            </div>
+            <div class="subcategory">
+              <label for="exposure-notes">Exposure details:</label>
+              <textarea id="exposure-notes" placeholder="Specific brightness characteristics, highlight/shadow preferences..."></textarea>
+            </div>
+          </div>
 
-        function handleFiles(event) {
-            const files = Array.from(event.target.files);
-            
-            files.forEach(file => {
-                if (file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const imageData = {
-                            id: Date.now() + Math.random(),
-                            src: e.target.result,
-                            name: file.name,
-                            description: ''
-                        };
-                        uploadedImages.push(imageData);
-                        displayUploadedImages();
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-        }
+          <div class="component-card">
+            <h3 class="component-title">Tonal Contrast</h3>
+            <div class="subcategory">
+              <label>Desired tonal contrast:</label>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" id="tonal-low" name="tonal-contrast" value="Low contrast (soft/flat)">
+                  <label for="tonal-low">Low contrast (soft/flat)</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" id="tonal-medium" name="tonal-contrast" value="Medium contrast">
+                  <label for="tonal-medium">Medium contrast</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" id="tonal-high" name="tonal-contrast" value="High contrast (punchy/dramatic)">
+                  <label for="tonal-high">High contrast (punchy/dramatic)</label>
+                </div>
+              </div>
+            </div>
+            <div class="subcategory">
+              <label for="tonal-notes">Tonal characteristics:</label>
+              <textarea id="tonal-notes" placeholder="Shadow depth, highlight handling, mid-tone characteristics..."></textarea>
+            </div>
+          </div>
 
-        function displayUploadedImages() {
-            const container = document.getElementById('uploadedImages');
-            container.innerHTML = '';
+          <div class="component-card">
+            <h3 class="component-title">Color Contrast</h3>
+            <div class="subcategory">
+              <label for="color-contrast-style">Desired color contrast style:</label>
+              <textarea id="color-contrast-style" placeholder="How should colors interact? Complementary, analogous, monochromatic, vibrant separation..."></textarea>
+            </div>
+            <div class="subcategory">
+              <label for="color-variety">Color variety approach:</label>
+              <select id="color-variety">
+                <option value="">Select desired approach</option>
+                <option value="Monochromatic feel">Monochromatic feel</option>
+                <option value="Limited color palette">Limited color palette</option>
+                <option value="Full spectrum variety">Full spectrum variety</option>
+                <option value="Strong complementary colors">Strong complementary colors</option>
+              </select>
+            </div>
+          </div>
 
-            uploadedImages.forEach(image => {
-                const imageDiv = document.createElement('div');
-                imageDiv.className = 'image-reference';
-                imageDiv.innerHTML = `
-                    <img src="${image.src}" alt="${image.name}">
-                    <label for="desc-${image.id}">What do you like/dislike about this reference?</label>
-                    <textarea id="desc-${image.id}" placeholder="Describe specific elements: tonal contrast, color palette, grain structure, highlight handling, mood, etc.">${image.description}</textarea>
-                    <button class="remove-image" onclick="removeImage('${image.id}')">Remove Image</button>
-                `;
-                container.appendChild(imageDiv);
+          <div class="component-card">
+            <h3 class="component-title">Color Balance</h3>
+            <div class="subcategory">
+              <label for="color-balance-mood">Desired color temperature and mood:</label>
+              <textarea id="color-balance-mood" placeholder="Warm/cool temperature, color mood characteristics, overall color feeling..."></textarea>
+            </div>
+            <div class="subcategory">
+              <label for="hue-characteristics">Specific hue characteristics:</label>
+              <textarea id="hue-characteristics" placeholder="How should specific colors appear? Skin tone warmth, sky blues, foliage greens, etc."></textarea>
+            </div>
+          </div>
 
-                // Add event listener for description updates
-                document.getElementById(`desc-${image.id}`).addEventListener('input', (e) => {
-                    const img = uploadedImages.find(img => img.id == image.id);
-                    if (img) img.description = e.target.value;
-                });
-            });
-        }
+          <div class="component-card">
+            <h3 class="component-title">Saturation</h3>
+            <div class="subcategory">
+              <label>Desired saturation intensity:</label>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" id="sat-low" name="saturation" value="Low saturation (muted/desaturated)">
+                  <label for="sat-low">Low saturation (muted/desaturated)</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" id="sat-medium" name="saturation" value="Medium saturation (natural)">
+                  <label for="sat-medium">Medium saturation (natural)</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" id="sat-high" name="saturation" value="High saturation (vibrant/intense)">
+                  <label for="sat-high">High saturation (vibrant/intense)</label>
+                </div>
+              </div>
+            </div>
+            <div class="subcategory">
+              <label for="saturation-type">Saturation approach:</label>
+              <select id="saturation-type">
+                <option value="">Select approach</option>
+                <option value="Vibrance (subtle, natural enhancement)">Vibrance (subtle, natural enhancement)</option>
+                <option value="Subtractive (filmic density)">Subtractive (filmic density)</option>
+                <option value="Uniform across all colors">Uniform across all colors</option>
+                <option value="Selective color enhancement">Selective color enhancement</option>
+              </select>
+            </div>
+          </div>
 
-        function removeImage(imageId) {
-            uploadedImages = uploadedImages.filter(img => img.id != imageId);
-            displayUploadedImages();
-        }
+          <div class="component-card">
+            <h3 class="component-title">Hue Accuracy</h3>
+            <div class="subcategory">
+              <label for="color-accuracy-goals">Key colors to represent accurately:</label>
+              <textarea id="color-accuracy-goals" placeholder="Product colors, skin tones, or other specific colors that should be represented faithfully..."></textarea>
+            </div>
+            <div class="subcategory">
+              <label for="hue-preferences">Specific hue preferences:</label>
+              <textarea id="hue-preferences" placeholder="How should specific colors be rendered? Warmer skin tones, cooler blues, etc."></textarea>
+            </div>
+          </div>
 
-        function exportToPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            // Set up the document
-            doc.setFontSize(20);
-            doc.setTextColor(44, 62, 80);
-            doc.text('Color Grading Brief', 20, 25);
-            
-            doc.setFontSize(12);
-            doc.setTextColor(100, 100, 100);
-            doc.text('Generated: ' + new Date().toLocaleDateString(), 20, 35);
-            
-            let yPosition = 50;
-            
-            // Helper function to add section
-            function addSection(title, startY) {
-                if (startY > 270) {
-                    doc.addPage();
-                    startY = 20;
-                }
-                doc.setFontSize(14);
-                doc.setTextColor(44, 62, 80);
-                doc.text(title, 20, startY);
-                return startY + 15;
-            }
-            
-            // Helper function to add field
-            function addField(label, value, startY) {
-                if (value && value.trim()) {
-                    if (startY > 270) {
-                        doc.addPage();
-                        startY = 20;
-                    }
-                    doc.setFontSize(11);
-                    doc.setTextColor(0, 0, 0);
-                    doc.text(label + ':', 25, startY);
-                    
-                    const lines = doc.splitTextToSize(value, 160);
-                    doc.text(lines, 25, startY + 5);
-                    return startY + (lines.length * 5) + 10;
-                }
-                return startY;
-            }
+          <div class="component-card">
+            <h3 class="component-title">Texture & Detail</h3>
+            <div class="subcategory">
+              <label>Desired texture and detail level:</label>
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" id="texture-clean" name="texture" value="Clean/sharp">
+                  <label for="texture-clean">Clean/sharp</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" id="texture-organic" name="texture" value="Organic/textured">
+                  <label for="texture-organic">Organic/textured</label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" id="texture-filmic" name="texture" value="Filmic/vintage">
+                  <label for="texture-filmic">Filmic/vintage</label>
+                </div>
+              </div>
+            </div>
+            <div class="subcategory">
+              <label for="texture-elements">Desired texture elements:</label>
+              <textarea id="texture-elements" placeholder="Film grain, diffusion, halation, sharpness characteristics, detail rendering..."></textarea>
+            </div>
+          </div>
 
-            // Helper function to add image
-            async function addImage(image, startY) {
-                if (startY > 200) {
-                    doc.addPage();
-                    startY = 20;
-                }
-                
-                try {
-                    doc.addImage(image.src, 'JPEG', 25, startY, 80, 60);
-                    doc.setFontSize(10);
-                    doc.setTextColor(100, 100, 100);
-                    doc.text(image.name, 25, startY + 65);
-                    
-                    if (image.description.trim()) {
-                        doc.setFontSize(9);
-                        doc.setTextColor(0, 0, 0);
-                        const lines = doc.splitTextToSize(image.description, 160);
-                        doc.text(lines, 25, startY + 70);
-                        return startY + 70 + (lines.length * 4) + 15;
-                    }
-                    return startY + 80;
-                } catch (error) {
-                    console.error('Error adding image to PDF:', error);
-                    return startY;
-                }
-            }
-            
-            // Step 1
-            yPosition = addSection('Step 1: Scope of Adjustment', yPosition);
-            
-            const scopeValue = document.querySelector('input[name="scope"]:checked')?.value || '';
-            const scopeLabels = {
-                'timeline': 'Timeline Level (Global Look)',
-                'group': 'Group Level (Scene/Camera Consistency)', 
-                'clip': 'Clip Level (Shot-Specific Refinement)'
+          <div class="component-card">
+            <h3 class="component-title">Consistency</h3>
+            <div class="subcategory">
+              <label for="consistency-approach">Desired consistency approach:</label>
+              <textarea id="consistency-approach" placeholder="How should shots relate to each other? Seamless matching, stylistic variation, mood progression..."></textarea>
+            </div>
+            <div class="subcategory">
+              <label for="consistency-elements">Key elements for consistency:</label>
+              <textarea id="consistency-elements" placeholder="Which visual elements should remain consistent: exposure, color temperature, contrast style, saturation level..."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: References -->
+      <div class="step-section">
+        <h2 class="section-title">Step 3: Utilize References Effectively</h2>
+        <div class="subcategory">
+          <label for="visual-references">Visual References (links/descriptions):</label>
+          <textarea id="visual-references" placeholder="Still images, video clips, or detailed descriptions of visual references..."></textarea>
+        </div>
+
+        <div class="subcategory">
+          <label>Upload Reference Images:</label>
+          <div class="image-upload-area" id="imageUpload" onclick="document.getElementById('fileInput').click()">
+            <p>Click here or drag and drop reference images</p>
+            <input type="file" id="fileInput" multiple accept="image/*" style="display:none"/>
+          </div>
+          <div class="uploaded-images" id="uploadedImages"></div>
+        </div>
+
+        <div class="subcategory">
+          <label for="non-visual-references">Non-Visual References:</label>
+          <textarea id="non-visual-references" placeholder="Cultural concepts, time periods, technical qualities (e.g., '1940s film noir', 'Super8 film')..."></textarea>
+        </div>
+        <div class="subcategory">
+          <label for="reference-specifics">General Reference Notes:</label>
+          <textarea id="reference-specifics" placeholder="Overall themes, moods, or concepts that tie your references together..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="export-section">
+      <button class="export-btn" onclick="exportToPDF()">Export Color Grading Brief as PDF</button>
+    </div>
+  </div>
+
+  <script>
+    let uploadedImages = [];
+
+    // File input
+    document.getElementById('fileInput').addEventListener('change', handleFiles);
+
+    // Drag & drop
+    const uploadArea = document.getElementById('imageUpload');
+    uploadArea.addEventListener('dragover', (e)=>{
+      e.preventDefault(); uploadArea.classList.add('dragover');
+    });
+    uploadArea.addEventListener('dragleave', ()=>{
+      uploadArea.classList.remove('dragover');
+    });
+    uploadArea.addEventListener('drop', (e)=>{
+      e.preventDefault(); uploadArea.classList.remove('dragover');
+      handleFiles({ target:{ files: e.dataTransfer.files } });
+    });
+
+    function handleFiles(event){
+      const files = Array.from(event.target.files || []);
+      files.forEach(file=>{
+        if(file.type.startsWith('image/')){
+          const reader = new FileReader();
+          reader.onload = (e)=>{
+            const imageData = {
+              id: Date.now() + Math.random(),
+              src: e.target.result,
+              name: file.name,
+              description: ''
             };
-            
-            if (scopeValue) {
-                yPosition = addField('Adjustment Level', scopeLabels[scopeValue], yPosition);
-            }
-            yPosition = addField('Scope Description', document.getElementById('scope-description').value, yPosition);
-            
-            // Step 2 - Components
-            yPosition = addSection('Step 2: Image Components', yPosition);
-            
-            // Exposure
-            const exposureValue = document.querySelector('input[name="exposure"]:checked')?.value || '';
-            if (exposureValue) {
-                yPosition = addField('Exposure Preference', exposureValue, yPosition);
-            }
-            yPosition = addField('Exposure Notes', document.getElementById('exposure-notes').value, yPosition);
-            
-            // Tonal Contrast
-            const tonalValue = document.querySelector('input[name="tonal-contrast"]:checked')?.value || '';
-            if (tonalValue) {
-                yPosition = addField('Tonal Contrast Preference', tonalValue, yPosition);
-            }
-            yPosition = addField('Tonal Notes', document.getElementById('tonal-notes').value, yPosition);
-            
-            // Continue with other components
-            yPosition = addField('Color Contrast Direction', document.getElementById('color-contrast-direction').value, yPosition);
-            yPosition = addField('Color Variety', document.getElementById('color-variety').value, yPosition);
-            yPosition = addField('Color Balance Mood', document.getElementById('color-balance-mood').value, yPosition);
-            yPosition = addField('Hue Adjustments', document.getElementById('hue-adjustments').value, yPosition);
-            
-            // Saturation
-            const satValue = document.querySelector('input[name="saturation"]:checked')?.value || '';
-            if (satValue) {
-                yPosition = addField('Saturation Preference', satValue, yPosition);
-            }
-            yPosition = addField('Saturation Type', document.getElementById('saturation-type').value, yPosition);
-            
-            yPosition = addField('Colors Needing Adjustment', document.getElementById('inaccurate-colors').value, yPosition);
-            yPosition = addField('Hue Corrections', document.getElementById('hue-corrections').value, yPosition);
-            
-            // Texture
-            const textureValue = document.querySelector('input[name="texture"]:checked')?.value || '';
-            if (textureValue) {
-                yPosition = addField('Texture Preference', textureValue, yPosition);
-            }
-            yPosition = addField('Texture Adjustments', document.getElementById('texture-adjustments').value, yPosition);
-            
-            // Consistency
-            yPosition = addField('Consistency Goals', document.getElementById('consistency-goals').value, yPosition);
-            yPosition = addField('Components Needing Matching', document.getElementById('consistency-components').value, yPosition);
-            
-            // Step 3 - References
-            yPosition = addSection('Step 3: References', yPosition);
-            yPosition = addField('Visual References', document.getElementById('visual-references').value, yPosition);
-            
-            // Add uploaded images
-            if (uploadedImages.length > 0) {
-                yPosition = addSection('Reference Images', yPosition);
-                for (const image of uploadedImages) {
-                    yPosition = await addImage(image, yPosition);
-                }
-            }
-            
-            yPosition = addField('Non-Visual References', document.getElementById('non-visual-references').value, yPosition);
-            yPosition = addField('General Reference Notes', document.getElementById('reference-specifics').value, yPosition);
-            
-            // Save the PDF
-            doc.save('color-grading-brief-' + new Date().toISOString().split('T')[0] + '.pdf');
-        }dField('Colors Needing Adjustment', document.getElementById('inaccurate-colors').value, yPosition);
-            yPosition = addField('Hue Corrections', document.getElementById('hue-corrections').value, yPosition);
-            
-            // Texture
-            const textureValue = document.querySelector('input[name="texture"]:checked')?.value || '';
-            if (textureValue) {
-                yPosition = addField('Texture Preference', textureValue, yPosition);
-            }
-            yPosition = addField('Texture Adjustments', document.getElementById('texture-adjustments').value, yPosition);
-            
-            // Consistency
-            yPosition = addField('Consistency Goals', document.getElementById('consistency-goals').value, yPosition);
-            yPosition = addField('Components Needing Matching', document.getElementById('consistency-components').value, yPosition);
-            
-            // Step 3 - References
-            yPosition = addSection('Step 3: References', yPosition);
-            yPosition = addField('Visual References', document.getElementById('visual-references').value, yPosition);
-            
-            // Add uploaded images
-            if (uploadedImages.length > 0) {
-                yPosition = addSection('Reference Images', yPosition);
-                for (const image of uploadedImages) {
-                    yPosition = await addImage(image, yPosition);
-                }
-            }
-            
-            yPosition = addField('Non-Visual References', document.getElementById('non-visual-references').value, yPosition);
-            yPosition = addField('General Reference Notes', document.getElementById('reference-specifics').value, yPosition);
-            
-            // Save the PDF
-            doc.save('color-grading-brief-' + new Date().toISOString().split('T')[0] + '.pdf');
+            uploadedImages.push(imageData);
+            displayUploadedImages();
+          };
+          reader.readAsDataURL(file);
         }
-    </script>dField('Inaccurate Colors', document.getElementById('inaccurate-colors').value, yPosition);
-            yPosition = addField('Hue Corrections', document.getElementById('hue-corrections').value, yPosition);
-            
-            if (yPosition > 250) {
-                doc.addPage();
-                yPosition = 20;
-            }
-            
-            // Texture
-            const textureValue = document.querySelector('input[name="texture"]:checked')?.value || '';
-            if (textureValue) {
-                yPosition = addField('Texture Assessment', textureValue, yPosition);
-            }
-            yPosition = addField('Texture Adjustments', document.getElementById('texture-adjustments').value, yPosition);
-            
-            // Consistency
-            yPosition = addField('Consistency Issues', document.getElementById('consistency-issues').value, yPosition);
-            yPosition = addField('Components Needing Matching', document.getElementById('consistency-components').value, yPosition);
-            
-            if (yPosition > 250) {
-                doc.addPage();
-                yPosition = 20;
-            }
-            
-            // Step 3 - References
-            yPosition = addSection('Step 3: References', yPosition);
-            yPosition = addField('Visual References', document.getElementById('visual-references').value, yPosition);
-            yPosition = addField('Non-Visual References', document.getElementById('non-visual-references').value, yPosition);
-            yPosition = addField('Specific Elements', document.getElementById('reference-specifics').value, yPosition);
-            
-            // Save the PDF
-            doc.save('color-grading-brief-' + new Date().toISOString().split('T')[0] + '.pdf');
-        }
-    </script>
-</body>
-</html>
+      });
+      // reset file input so selecting the same file again still triggers change
+      if (event.target && event.target.id === 'fileInput') event.
+
